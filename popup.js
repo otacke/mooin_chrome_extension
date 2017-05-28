@@ -1,5 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function () {
+
   var that = this;
 
   this.movePageRangeText = document.getElementById('mooinPLUS-movePage-rangeText');
@@ -17,15 +18,28 @@ document.addEventListener('DOMContentLoaded', function () {
   this.section = '';
   this.sesskey = '';
 
-  this.url = undefined;
+  this.movePageUrl = undefined;
 
-  // TODO: The icon should be updated whenever the tab is changed.
-  chrome.browserAction.setIcon({path: 'icons/inactive128.png'});
-
-  function getURL() {
+  /**
+   * Get the move URL.
+   *
+   * @return {Promise} Results containing the move URL.
+   */
+  function getMovePageUrl() {
     return new Promise(function(resolve, reject) {
-      return getURL2(resolve);
+      return getMovePageUrl2(resolve);
     });
+  }
+
+  /**
+   * Get the move URL from the DOM.
+   *
+   * @param {Object} callback - Callback function for the results.
+   */
+  function getMovePageUrl2(callback) {
+    chrome.tabs.executeScript(
+      {code: '(' + extractMovePageUrl + ')();'},
+      callback);
   }
 
   /**
@@ -35,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
    *
    * @return {string} URL that can be used to modify the page order | undefined.
    */
-  function extractURL() {
+  function extractMovePageUrl() {
      var arrow = document.getElementsByClassName('iconsmall up')[0];
      if (!arrow) {
        arrow = document.getElementsByClassName('iconsmall down')[0];
@@ -46,26 +60,21 @@ document.addEventListener('DOMContentLoaded', function () {
      return arrow.parentNode.href;
   }
 
-  function getURL2(callback) {
-    chrome.tabs.executeScript(
-      {code: '(' + extractURL + ')();'},
-      callback);
-  }
-
+  /**
+   * Handle the popup window.
+   *
+   * @param {Object} results - Results from executeScript.
+   */
   function popup(results) {
     if (!results) {
       return;
     }
-    that.url = results[0];
+    that.movePageUrl = results[0];
 
-    if (that.url) {
-
-      // TODO: The icon should be updated whenever the tab is changed.
-      chrome.browserAction.setIcon({path: 'icons/active128.png'});
-
+    if (that.movePageUrl) {
       // Extract GET variables.
-      that.address = that.url.split('?')[0];
-      var params = that.url.split('?')[1].split('&');
+      that.address = that.movePageUrl.split('?')[0];
+      var params = that.movePageUrl.split('?')[1].split('&');
       that.id = parseInt(params[0].split('=')[1]);
       that.random = parseInt(params[1].split('=')[1]);
       that.section = parseInt(params[2].split('=')[1]);
@@ -86,13 +95,13 @@ document.addEventListener('DOMContentLoaded', function () {
       // Event Listener for the move button.
       that.movePageButton.addEventListener('click', function() {
         // Move page and close popup window.
-        var targetURL = that.address + '?id=' + that.id +
+        var targetMovePageUrl = that.address + '?id=' + that.id +
           '&random=' + that.random +
           '&section=' + that.section +
           '&move=' + that.move +
           '&sesskey=' + that.sesskey + '#section-' + Math.max(1, parseInt(that.section) + parseInt(that.move));
 
-        var code = 'window.open("' + targetURL + '", "_self")';
+        var code = 'window.open("' + targetMovePageUrl + '", "_self")';
         chrome.tabs.executeScript({code: code});
         window.close();
       });
@@ -101,6 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Let's go!
-  getURL().then(popup);
+  getMovePageUrl().then(popup);
 
 });
