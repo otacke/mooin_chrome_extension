@@ -17,7 +17,7 @@
 
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://mooin.oncampus.de/*"],
       "js": ["content.js"],
       "run_at": "document_end"
     }
