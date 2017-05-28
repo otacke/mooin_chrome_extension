@@ -24,7 +24,7 @@
   ],
 
   "permissions": [
-      "tabs",
+      "activeTab",
       "https://mooin.oncampus.de/*"
   ]
 }

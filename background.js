@@ -15,7 +15,8 @@ function getTabUrl() {
  * @param {Object} callback - Callback function.
  */
 function getTabUrl2(callback) {
-  chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, callback);
+  chrome.tabs.query({'active': true}, callback);
+  //chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, callback);
 }
 
 /**
@@ -27,16 +28,15 @@ function updateBrowserAction(results) {
   var url = results[0].url;
   var active;
 
-  // Only is intended for mooin.
-  if (url.startsWith('https://mooin.oncampus.de')) {
-    chrome.browserAction.setIcon({path: 'icons/active128.png'});
-    chrome.browserAction.enable();
-    active = true;
-  }
-  else {
+  // Is intended for mooin only.
+  if (!url || !url.startsWith('https://mooin.oncampus.de')) {
     chrome.browserAction.setIcon({path: 'icons/inactive128.png'});
     chrome.browserAction.disable();
     active = false;
+  } else {
+    chrome.browserAction.setIcon({path: 'icons/active128.png'});
+    chrome.browserAction.enable();
+    active = true;
   }
 
   // Inform content scripts about current state.
